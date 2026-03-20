@@ -4,34 +4,38 @@ This project automates the monitoring of an ANS21 controller by taking photos, e
 
 ## Hardware Requirements
 
-- **Raspberry Pi Zero W** (or similar)
-- **USB Webcam** (Generic/Cheap)
+- Raspberry Pi Zero W (or similar)
+- USB Webcam (Generic/Cheap)
 
 ## Features
 
-- **Automated Capture**: Periodically captures images of the ANS21 controller.
-- **Image Evaluation**: Processes the captured images to extract relevant status or metrics from the controller display.
-- **Web Interface**: A small built-in web server provides access to the latest results and images.
+- Automated Capture: Periodically captures images of the ANS21 controller.
+- Image Evaluation: Processes the captured images to extract relevant status or metrics from the controller display.
+- Web Interface: A small built-in web server provides access to the latest results and images.
 
-## Setup
+## Installation & Setup
 
-1.  **Clone the repository:**
+1.  Clone the repository:
     ```bash
     git clone <repository_url>
     cd ans21-monitoring
     ```
 
-2.  **Install dependencies:**
+2.  Create and activate a virtual environment:
     ```bash
-    pip install .
-    # Or install specific requirements if provided in requirements.txt
+    python3 -m venv .venv
+    source .venv/bin/activate
     ```
 
-3.  **Run the application:**
+3.  Install the package:
     ```bash
-    # Command to run the script (e.g., python main.py)
+    pip install -e .
     ```
 
-## Development
+## Usage
 
-This is a Python project managed with `pyproject.toml`.
+Run the monitoring application:
+
+```bash
+python -m ans21_monitoring
+```

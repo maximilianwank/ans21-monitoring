@@ -1,6 +1,4 @@
 import time
-import sys
-import logging
 from ans21_monitoring.camera import take_picture
 from ans21_monitoring.image_analysis import count_bright_spots
 

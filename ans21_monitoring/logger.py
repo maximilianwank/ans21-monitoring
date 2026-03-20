@@ -1,12 +1,18 @@
 import logging
 import logging.handlers
 import sys
+from pathlib import Path
 
 
 def setup_logging(log_file="ans21_monitoring.log"):
     """
     Sets up a rotating file logger and a console logger.
     """
+    # Create logs directory
+    log_dir = Path(".logs")
+    log_dir.mkdir(exist_ok=True)
+    log_path = log_dir / log_file
+
     # Create the root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
@@ -18,7 +24,7 @@ def setup_logging(log_file="ans21_monitoring.log"):
 
     # Rotating File Handler (1MB max, 5 backups)
     file_handler = logging.handlers.RotatingFileHandler(
-        log_file, maxBytes=1024 * 1024, backupCount=5
+        log_path, maxBytes=1024 * 1024, backupCount=5
     )
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)

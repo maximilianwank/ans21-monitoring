@@ -16,20 +16,20 @@ def count_bright_spots(img: np.ndarray, threshold_value: int = 225) -> int:
     if img is None:
         raise ValueError("Image cannot be None")
 
-    # 1. In Graustufen umwandeln
+    # 1. Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # 2. Leichtes Weichzeichnen (filtert Sensor-Rauschen)
+    # 2. Slight blurring (filters sensor noise)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
 
-    # 3. Schwellenwert anwenden
-    # Alles über 'threshold_value' wird 255 (weiß), der Rest 0 (schwarz)
+    # 3. Apply threshold
+    # Everything above 'threshold_value' becomes 255 (white), the rest 0 (black)
     _, thresh = cv2.threshold(blurred, threshold_value, 255, cv2.THRESH_BINARY)
 
-    # 4. Konturen finden
+    # 4. Find contours
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Optional: Filter nach Mindestgröße, um winzige Lichtpunkte zu ignorieren
+    # Optional: Filter by minimum size to ignore tiny light points
     min_area = 5
     valid_spots = [c for c in contours if cv2.contourArea(c) > min_area]
 

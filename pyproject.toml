@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ans21-monitoring"
+version = "0.1.0"
+description = "Automated monitoring for ANS21 controller using Raspberry Pi Zero W and USB webcam"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+  { name = "Maximilian Wank"},
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+]
+dependencies = [
+    "opencv-python",
+    # "flask",      # Example: for webserver
+    # "schedule",   # Example: for periodic tasks
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/username/ans21-monitoring"
+"Bug Tracker" = "https://github.com/username/ans21-monitoring/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.pytest.ini_options]
+pythonpath = "."

@@ -2,16 +2,10 @@
 
 This project automates the monitoring of an ANS21 controller by taking photos, evaluating them, and exposing the results via a lightweight web server.
 
-## Hardware Requirements
+## Used Hardware
 
-- Raspberry Pi Zero W (or similar)
-- USB Webcam (Generic/Cheap)
-
-## Features
-
-- Automated Capture: Periodically captures images of the ANS21 controller.
-- Image Evaluation: Processes the captured images to extract relevant status or metrics from the controller display.
-- Web Interface: A small built-in web server provides access to the latest results and images.
+- Raspberry Pi Zero W
+- USB Webcam
 
 ## Installation & Setup
 
@@ -21,13 +15,20 @@ This project automates the monitoring of an ANS21 controller by taking photos, e
     cd ans21-monitoring
     ```
 
-2.  Create and activate a virtual environment:
+2.  Install System Dependencies (Raspberry Pi/Linux):
+    OpenCV requires several system libraries that are often missing on minimal installations (like Raspberry Pi OS).
+    ```bash
+    sudo apt-get update
+    sudo apt-get install -y libwebpdemux2 libtiff6 libopenjp2-7 libopenblas-dev libavcodec-dev libavformat-dev libswscale-dev
+    ```
+
+3.  Create and activate a virtual environment:
     ```bash
     python3 -m venv .venv
     source .venv/bin/activate
     ```
 
-3.  Install the package:
+4.  Install the package:
     ```bash
     pip install -e .
     ```

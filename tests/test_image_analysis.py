@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 import cv2
-import os
 from pathlib import Path
 from ans21_monitoring.image_analysis import count_bright_spots
 

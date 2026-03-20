@@ -40,3 +40,51 @@ Run the monitoring application:
 ```bash
 python -m ans21_monitoring
 ```
+
+## Automatic Startup (Systemd)
+
+To run the monitoring service automatically when the Raspberry Pi boots, use a systemd service.
+
+1.  **Create a service file:**
+
+    ```bash
+    sudo nano /etc/systemd/system/ans21-monitoring.service
+    ```
+
+2.  **Paste the following configuration:**
+    (Adjust the `User` and `WorkingDirectory` paths if your username or installation path differs)
+
+    ```ini
+    [Unit]
+    Description=ANS21 Monitoring Service
+    After=network.target
+
+    [Service]
+    Type=simple
+    User=max
+    WorkingDirectory=/home/max/Code/ans21-monitoring
+    ExecStart=/home/max/Code/ans21-monitoring/.venv/bin/python -m ans21_monitoring
+    Restart=always
+    RestartSec=10
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+
+3.  **Enable and start the service:**
+
+    ```bash
+    sudo systemctl daemon-reload
+    sudo systemctl enable ans21-monitoring.service
+    sudo systemctl start ans21-monitoring.service
+    ```
+
+4.  **check status and logs:**
+
+    ```bash
+    sudo systemctl status ans21-monitoring.service
+    # To follow logs provided by systemd (stdout/stderr)
+    journalctl -u ans21-monitoring.service -f
+    ```
+
+    Note: The application also writes its own application logs to `.logs/ans21_monitoring.log` inside the project folder.

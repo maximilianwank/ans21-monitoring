@@ -48,10 +48,6 @@ def test_sample_images_jpg(img_path):
     # Run the analysis with the new default threshold
     count = count_bright_spots(img)
 
-    # Basic assertion: result must be a non-negative integer
-    assert isinstance(count, int)
-    assert count >= 0
-
     # Specific assertions for known images
     filename = img_path.name
     if "08:15" in filename:

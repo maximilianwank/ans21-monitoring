@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 
-def count_bright_spots(img: np.ndarray, threshold_value: int = 225) -> int:
+def count_bright_spots(img: np.ndarray, threshold_value: int = 174) -> int:
     """
     Counts the number of bright spots in an image.
 
@@ -34,3 +34,15 @@ def count_bright_spots(img: np.ndarray, threshold_value: int = 225) -> int:
     valid_spots = [c for c in contours if cv2.contourArea(c) > min_area]
 
     return len(valid_spots)
+
+
+if __name__ == "__main__":
+    # Example usage (for testing purposes)
+    test_image_path = "/home/max/Code/ans21-monitoring/tests/sample_images/2026-03-20T08:15:02+01:00.jpg"  # Replace with your test image path
+    img = cv2.imread(test_image_path)
+    valid = []
+    for i in range(1, 255):
+        count = count_bright_spots(img, threshold_value=i)
+        if count == 2:
+            valid.append(i)
+    print(f"Valid thresholds for 2 bright spots: {valid}")

@@ -45,9 +45,16 @@ def test_sample_images_jpg(img_path):
     if img is None:
         pytest.fail(f"Failed to load image: {img_path}")
 
-    # Run the analysis
-    count = count_bright_spots(img, threshold_value=200)
+    # Run the analysis with the new default threshold
+    count = count_bright_spots(img)
 
     # Basic assertion: result must be a non-negative integer
     assert isinstance(count, int)
     assert count >= 0
+
+    # Specific assertions for known images
+    filename = img_path.name
+    if "08:15" in filename:
+        assert count == 2, f"Expected 2 spots for {filename}, found {count}"
+    elif "08:18" in filename:
+        assert count == 3, f"Expected 3 spots for {filename}, found {count}"

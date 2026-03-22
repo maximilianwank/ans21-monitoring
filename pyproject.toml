@@ -16,9 +16,10 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
 ]
 dependencies = [
-    "opencv-python",
-    # "flask",      # Example: for webserver
-    # "schedule",   # Example: for periodic tasks
+    "opencv-python-headless",
+    "flask",
+    "schedule",
+    "gunicorn",
 ]
 
 [project.optional-dependencies]

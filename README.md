@@ -41,6 +41,15 @@ Run the monitoring application:
 python -m ans21_monitoring
 ```
 
+## Web Interface
+
+To view the pump status history (last 3 days):
+
+```bash
+python -m ans21_monitoring.web
+```
+Access the interface at `http://<pi-ip-address>:5000`.
+
 ## Automatic Startup (Systemd)
 
 To run the monitoring service automatically when the Raspberry Pi boots, use a systemd service.

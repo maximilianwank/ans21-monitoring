@@ -45,3 +45,20 @@ class DatabaseManager:
             logger.debug(f"Saved reading: {count} spots at {timestamp}")
         except sqlite3.Error as e:
             logger.error(f"Failed to save reading: {e}")
+
+    def get_readings(self, days=3):
+        """Get readings from the last n days."""
+        try:
+            timestamp_threshold = int(
+                (datetime.datetime.now() - datetime.timedelta(days=days)).timestamp()
+            )
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT timestamp, count FROM bright_spots WHERE timestamp >= ?",
+                    (timestamp_threshold,),
+                )
+                return cursor.fetchall()
+        except sqlite3.Error as e:
+            logger.error(f"Failed to get readings: {e}")
+            return []

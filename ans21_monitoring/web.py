@@ -1,15 +1,18 @@
 from flask import Flask, render_template_string
-from .database import DatabaseManager
 import datetime
 
-app = Flask(__name__)
-# Initialize DatabaseManager. Note: The database path is relative to where the script is run.
-# Assuming standard execution from project root, it should find ans21_monitoring.db
-db_manager = DatabaseManager()
+
+def create_app(db_manager):
+    app = Flask(__name__)
+
+    @app.route("/")
+    def index():
+        return _render_index(db_manager)
+
+    return app
 
 
-@app.route("/")
-def index():
+def _render_index(db_manager):
     # Fetch readings for the last 3 days
     readings = db_manager.get_readings(days=3)
 
@@ -83,7 +86,3 @@ def index():
     """
 
     return render_template_string(template, data=processed_data)
-
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)

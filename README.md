@@ -35,20 +35,13 @@ This project automates the monitoring of an ANS21 controller by taking photos, e
 
 ## Usage
 
-Run the monitoring application:
+Run the monitoring application (includes the web interface on port 5000):
 
 ```bash
 python -m ans21_monitoring
 ```
 
-## Web Interface
-
-To view the pump status history (last 3 days):
-
-```bash
-python -m ans21_monitoring.web
-```
-Access the interface at `http://<pi-ip-address>:5000`.
+Access the pump status dashboard at `http://<pi-ip-address>:5000`.
 
 ## Automatic Startup (Systemd)
 

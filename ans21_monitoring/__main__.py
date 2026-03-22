@@ -2,11 +2,13 @@ import time
 import logging
 import signal
 import sys
+import threading
 from ans21_monitoring import __version__
 from ans21_monitoring.camera import take_picture
 from ans21_monitoring.image_analysis import count_bright_spots
 from ans21_monitoring.logger import setup_logging
 from ans21_monitoring.database import DatabaseManager
+from ans21_monitoring.web import create_app
 
 # Configuration
 CHECK_INTERVAL_SECONDS = 60
@@ -39,6 +41,16 @@ def main():
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
+
+    # Start web server in a background thread
+    flask_app = create_app(db_manager)
+    web_thread = threading.Thread(
+        target=flask_app.run,
+        kwargs={"host": "0.0.0.0", "port": 5000},
+        daemon=True,
+    )
+    web_thread.start()
+    logger.info("Web interface started on http://0.0.0.0:5000")
 
     logger.info("Monitoring loop started. Press Ctrl+C to stop.")
 

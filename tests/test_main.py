@@ -12,6 +12,8 @@ def mock_dependencies():
         patch("ans21_monitoring.__main__.count_bright_spots") as mock_count,
         patch("ans21_monitoring.__main__.time.sleep") as mock_sleep,
         patch("ans21_monitoring.__main__.signal.signal") as mock_signal,
+        patch("ans21_monitoring.__main__.create_app") as mock_create_app,
+        patch("ans21_monitoring.__main__.threading.Thread") as mock_thread_cls,
     ):
 
         mock_db_instance = mock_db_cls.return_value
@@ -23,6 +25,8 @@ def mock_dependencies():
             "count": mock_count,
             "sleep": mock_sleep,
             "signal": mock_signal,
+            "create_app": mock_create_app,
+            "thread_cls": mock_thread_cls,
         }
 
 

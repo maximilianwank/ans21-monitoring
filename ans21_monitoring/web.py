@@ -36,8 +36,18 @@ def _render_index(db_manager):
             }
         )
 
-    # Sort by timestamp descending
-    processed_data.sort(key=lambda x: x["timestamp_raw"], reverse=True)
+    # Sort by timestamp ascending for dedup, then reverse
+    processed_data.sort(key=lambda x: x["timestamp_raw"])
+
+    # Keep only rows where the status changed
+    deduped = []
+    last_status = None
+    for item in processed_data:
+        if item["status"] != last_status:
+            deduped.append(item)
+            last_status = item["status"]
+    deduped.reverse()
+    processed_data = deduped
 
     template = """
     <!DOCTYPE html>
@@ -62,7 +72,6 @@ def _render_index(db_manager):
                 <tr>
                     <th>Time</th>
                     <th>Status</th>
-                    <th>Bright Spots</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,11 +81,10 @@ def _render_index(db_manager):
                     <td class="{{ 'running' if item.count == 3 else 'stopped' }}">
                         {{ item.status }}
                     </td>
-                    <td>{{ item.count }}</td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="3" style="text-align: center;">No data available for the last 3 days.</td>
+                    <td colspan="2" style="text-align: center;">No data available for the last 3 days.</td>
                 </tr>
                 {% endfor %}
             </tbody>

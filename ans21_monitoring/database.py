@@ -20,7 +20,7 @@ class DatabaseManager:
                     """
                     CREATE TABLE IF NOT EXISTS bright_spots (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        timestamp TEXT NOT NULL,
+                        timestamp INTEGER NOT NULL,
                         count INTEGER NOT NULL
                     )
                 """
@@ -34,7 +34,7 @@ class DatabaseManager:
     def save_reading(self, count):
         """Save a new reading with the current timestamp."""
         try:
-            timestamp = datetime.datetime.now().isoformat()
+            timestamp = int(datetime.datetime.now().timestamp())
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute(

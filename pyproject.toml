@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ans21-monitoring"
-version = "0.1.0"
+version = "0.2.0"
 description = "Automated monitoring for ANS21 controller using Raspberry Pi Zero W and USB webcam"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -20,6 +20,7 @@ dependencies = [
     "flask",
     "schedule",
     "gunicorn",
+    "astral",
 ]
 
 [project.optional-dependencies]

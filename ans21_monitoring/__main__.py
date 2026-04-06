@@ -3,6 +3,10 @@ import logging
 import signal
 import sys
 import threading
+from datetime import datetime, timedelta, timezone
+from typing import Optional
+from astral import Observer
+from astral.sun import sun
 from ans21_monitoring import __version__
 from ans21_monitoring.camera import take_picture
 from ans21_monitoring.image_analysis import count_bright_spots
@@ -13,6 +17,31 @@ from ans21_monitoring.web import create_app
 # Configuration
 CHECK_INTERVAL_SECONDS = 60
 FORCE_LOG_INTERVAL_SECONDS = 300  # 5 minutes
+
+LATITUDE = 47.5972
+LONGITUDE = 11.1874
+
+
+def _calculate_sleep_time(elapsed: float, now_utc: Optional[datetime] = None) -> float:
+    interval_sleep = max(0.0, CHECK_INTERVAL_SECONDS - elapsed)
+    now_utc = now_utc or datetime.now(timezone.utc)
+
+    observer = Observer(latitude=LATITUDE, longitude=LONGITUDE)
+    today_sun = sun(observer, date=now_utc.date(), tzinfo=timezone.utc)
+    sunrise = today_sun["sunrise"]
+    sunset = today_sun["sunset"]
+
+    # Keep daytime behavior unchanged.
+    if sunrise <= now_utc <= sunset:
+        return interval_sleep
+
+    if now_utc < sunrise:
+        next_sunrise = sunrise
+    else:
+        tomorrow = now_utc.date() + timedelta(days=1)
+        next_sunrise = sun(observer, date=tomorrow, tzinfo=timezone.utc)["sunrise"]
+
+    return max(0.0, (next_sunrise - now_utc).total_seconds())
 
 
 def main():
@@ -96,7 +125,13 @@ def main():
         # Sleep for the remainder of the interval
         if monitor_running:
             elapsed = time.time() - start_time
-            sleep_time = max(0, CHECK_INTERVAL_SECONDS - elapsed)
+            try:
+                sleep_time = _calculate_sleep_time(elapsed)
+            except Exception as e:
+                logger.warning(
+                    f"Failed to calculate sunrise/sunset sleep time: {e}. Falling back to fixed interval."
+                )
+                sleep_time = max(0, CHECK_INTERVAL_SECONDS - elapsed)
             time.sleep(sleep_time)
 
 

@@ -20,6 +20,7 @@ dependencies = [
     "flask",
     "schedule",
     "gunicorn",
+    "astral",
 ]
 
 [project.optional-dependencies]

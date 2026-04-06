@@ -1,5 +1,7 @@
 import pytest
 from unittest.mock import patch
+from datetime import datetime, timezone
+import ans21_monitoring.__main__ as main_module
 from ans21_monitoring.__main__ import main
 
 
@@ -157,3 +159,38 @@ def test_main_handle_exception_in_loop(mock_dependencies):
     # 2. save_reading called ONCE (only for second iteration)
     assert mocks["db_instance"].save_reading.call_count == 1
     mocks["db_instance"].save_reading.assert_called_with(5)
+
+
+def test_calculate_sleep_time_daytime_keeps_interval_behavior():
+    now_utc = datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc)
+
+    def sun_side_effect(_observer, date, tzinfo):
+        return {
+            "sunrise": datetime(2026, 6, 1, 4, 0, tzinfo=timezone.utc),
+            "sunset": datetime(2026, 6, 1, 20, 0, tzinfo=timezone.utc),
+        }
+
+    with patch("ans21_monitoring.__main__.sun", side_effect=sun_side_effect):
+        sleep_time = main_module._calculate_sleep_time(elapsed=5.0, now_utc=now_utc)
+
+    assert sleep_time == 55.0
+
+
+def test_calculate_sleep_time_nighttime_uses_next_sunrise():
+    now_utc = datetime(2026, 6, 1, 22, 0, tzinfo=timezone.utc)
+
+    def sun_side_effect(_observer, date, tzinfo):
+        if date.day == 1:
+            return {
+                "sunrise": datetime(2026, 6, 1, 4, 0, tzinfo=timezone.utc),
+                "sunset": datetime(2026, 6, 1, 20, 0, tzinfo=timezone.utc),
+            }
+        return {
+            "sunrise": datetime(2026, 6, 2, 4, 0, tzinfo=timezone.utc),
+            "sunset": datetime(2026, 6, 2, 20, 0, tzinfo=timezone.utc),
+        }
+
+    with patch("ans21_monitoring.__main__.sun", side_effect=sun_side_effect):
+        sleep_time = main_module._calculate_sleep_time(elapsed=5.0, now_utc=now_utc)
+
+    assert sleep_time == 21600.0

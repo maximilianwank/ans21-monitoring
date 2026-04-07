@@ -40,7 +40,13 @@ def _calculate_sleep_time(elapsed: float, now_utc: Optional[datetime] = None) ->
         tomorrow = now_utc.date() + timedelta(days=1)
         next_sunrise = sun(observer, date=tomorrow, tzinfo=timezone.utc)["sunrise"]
 
-    return max(0.0, (next_sunrise - now_utc).total_seconds())
+    sleep_time = (next_sunrise - now_utc).total_seconds()
+    logger = logging.getLogger(__name__)
+    logger.debug(
+        f"Nighttime detected. Now: {now_utc}, next sunrise at: {next_sunrise}, sleeping for {sleep_time:.2f} seconds."
+    )
+
+    return max(0.0, sleep_time)
 
 
 def main():

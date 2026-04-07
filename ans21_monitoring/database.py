@@ -46,6 +46,20 @@ class DatabaseManager:
         except sqlite3.Error as e:
             logger.error(f"Failed to save reading: {e}")
 
+    def get_last_count(self):
+        """Return the count from the most recent reading, or None if empty."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT count FROM bright_spots ORDER BY id DESC LIMIT 1"
+                )
+                row = cursor.fetchone()
+                return row[0] if row else None
+        except sqlite3.Error as e:
+            logger.error(f"Failed to get last count: {e}")
+            return None
+
     def get_readings(self, days=3):
         """Get readings from the last n days."""
         try:

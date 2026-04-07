@@ -1,154 +1,132 @@
 #!/usr/bin/env python3
-"""
-Standalone script to visualize ans21_monitoring.db data using Plotly.
-Creates horizontal bar charts with one bar per day, colored by count value.
-"""
+"""Visualize ans21_monitoring.db data as a Plotly Gantt chart (last 8 days)."""
 
 import sqlite3
 import datetime
-from pathlib import Path
-import plotly.graph_objects as go
 from collections import defaultdict
 
-# Database path
+import plotly.graph_objects as go
+
 DB_PATH = "ans21_monitoring.db"
 
-
-def get_all_readings():
-    """Fetch all readings from the database."""
-    try:
-        with sqlite3.connect(DB_PATH) as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT timestamp, count FROM bright_spots ORDER BY timestamp"
-            )
-            return cursor.fetchall()
-    except sqlite3.Error as e:
-        print(f"Error reading database: {e}")
-        return []
-
-
-def organize_by_day(readings):
-    """Organize readings by date and time of day."""
-    data_by_day = defaultdict(list)
-
-    for timestamp, count in readings:
-        dt = datetime.datetime.fromtimestamp(timestamp)
-        date_str = dt.date().isoformat()
-        time_of_day = dt.time()
-        hours = dt.hour + dt.minute / 60  # Convert to decimal hours for positioning
-
-        data_by_day[date_str].append(
-            {
-                "time": time_of_day.strftime("%H:%M"),
-                "hours": hours,
-                "count": count,
-                "timestamp": timestamp,
-            }
-        )
-
-    return data_by_day
+COUNT_COLORS = {
+    2: "red",
+    3: "green",
+}
+DEFAULT_COLOR = "grey"
 
 
 def get_color(count):
-    """Return color based on count value."""
-    if count == 2:
-        return "red"
-    elif count == 3:
-        return "green"
-    else:
-        return "grey"
+    return COUNT_COLORS.get(count, DEFAULT_COLOR)
 
 
-def create_visualization(data_by_day):
-    """Create horizontal bar chart visualization."""
-    if not data_by_day:
-        print("No data to visualize!")
-        return
+def get_readings(days=8):
+    threshold = int(
+        (
+            datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            - datetime.timedelta(days=days - 1)
+        ).timestamp()
+    )
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT timestamp, count FROM bright_spots "
+            "WHERE timestamp >= ? ORDER BY timestamp",
+            (threshold,),
+        )
+        return cursor.fetchall()
 
-    # Sort dates for consistent ordering
-    sorted_dates = sorted(data_by_day.keys(), reverse=True)
+
+def build_segments(readings):
+    """Turn point readings into (start, end, count) segments per day."""
+    by_day = defaultdict(list)
+    for ts, count in readings:
+        dt = datetime.datetime.fromtimestamp(ts)
+        by_day[dt.date()].append((dt, count))
+
+    segments = []
+    for date, points in by_day.items():
+        points.sort()
+        for i, (dt, count) in enumerate(points):
+            start_h = dt.hour + dt.minute / 60 + dt.second / 3600
+            if i + 1 < len(points):
+                nxt = points[i + 1][0]
+                end_h = nxt.hour + nxt.minute / 60 + nxt.second / 3600
+            else:
+                # last reading of the day: extend to end of day (or now if today)
+                if date == datetime.date.today():
+                    now = datetime.datetime.now()
+                    end_h = now.hour + now.minute / 60 + now.second / 3600
+                else:
+                    end_h = 24.0
+            segments.append((date, start_h, end_h, count))
+
+    return segments
+
+
+def create_chart(segments):
+    today = datetime.date.today()
+    # All 8 days, today first (top of chart)
+    all_dates = [today - datetime.timedelta(days=i) for i in range(8)]
+    date_labels = [d.strftime("%a %Y-%m-%d") for d in all_dates]
 
     fig = go.Figure()
 
-    # Add a bar for each day
-    for date_str in sorted_dates:
-        day_data = data_by_day[date_str]
-
-        # Sort by time of day
-        day_data_sorted = sorted(day_data, key=lambda x: x["hours"])
-
-        times = [d["time"] for d in day_data_sorted]
-        hours = [d["hours"] for d in day_data_sorted]
-        counts = [d["count"] for d in day_data_sorted]
-        colors = [get_color(c) for c in counts]
-
-        # Add a horizontal bar for this day
+    for date, start_h, end_h, count in segments:
+        label = date.strftime("%a %Y-%m-%d")
+        if label not in date_labels:
+            continue
         fig.add_trace(
             go.Bar(
-                y=[date_str] * len(hours),
-                x=hours,
+                y=[label],
+                x=[end_h - start_h],
+                base=[start_h],
                 orientation="h",
-                name=date_str,
-                marker=dict(color=colors),
-                text=times,
-                textposition="outside",
-                textfont=dict(size=9),
+                marker_color=get_color(count),
                 showlegend=False,
-                hovertemplate="<b>%{y}</b><br>Time: %{text}<br>Count: "
-                + "<extra></extra>"
-                + ",".join([f"{t}: {c}" for t, c in zip(times, counts)]).split(",")[0],
+                hovertemplate=(
+                    f"<b>{label}</b><br>"
+                    f"Count: {count}<br>"
+                    f"{int(start_h):02d}:{int((start_h % 1) * 60):02d} – "
+                    f"{int(end_h):02d}:{int((end_h % 1) * 60):02d}"
+                    "<extra></extra>"
+                ),
             )
         )
 
-    # Update layout
     fig.update_layout(
-        title="Bright Spots Monitoring Data",
-        xaxis_title="Time of Day (hours)",
-        yaxis_title="Date",
-        height=max(400, len(sorted_dates) * 100),
-        hovermode="closest",
-        barmode="overlay",
+        title="Bright Spots – Last 8 Days",
         xaxis=dict(
+            title="Time of Day",
             range=[0, 24],
-            tickvals=[0, 3, 6, 9, 12, 15, 18, 21, 24],
-            ticktext=[
-                "00:00",
-                "03:00",
-                "06:00",
-                "09:00",
-                "12:00",
-                "15:00",
-                "18:00",
-                "21:00",
-                "24:00",
-            ],
+            tickvals=list(range(25)),
+            ticktext=[f"{h:02d}:00" for h in range(25)],
+            fixedrange=True,
         ),
+        yaxis=dict(
+            categoryorder="array",
+            categoryarray=list(reversed(date_labels)),  # today on top
+        ),
+        barmode="overlay",
+        height=500,
         template="plotly_white",
+        bargap=0.3,
     )
 
-    # Save and show
     output_file = "monitoring_visualization.html"
     fig.write_html(output_file)
-    print(f"Visualization saved to {output_file}")
+    print(f"Saved to {output_file}")
     fig.show()
 
 
 def main():
-    """Main function."""
-    print(f"Reading data from {DB_PATH}...")
-    readings = get_all_readings()
-
+    readings = get_readings(days=8)
     if not readings:
-        print("No readings found in database!")
+        print("No readings found!")
         return
-
-    print(f"Found {len(readings)} readings")
-
-    data_by_day = organize_by_day(readings)
-    print(f"Data organized for {len(data_by_day)} days")
-
-    create_visualization(data_by_day)
+    print(f"{len(readings)} readings loaded")
+    segments = build_segments(readings)
+    create_chart(segments)
 
 
 if __name__ == "__main__":

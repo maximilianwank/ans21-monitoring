@@ -19,8 +19,7 @@ class DatabaseManager:
                 cursor.execute(
                     """
                     CREATE TABLE IF NOT EXISTS bright_spots (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        timestamp INTEGER NOT NULL,
+                        timestamp INTEGER PRIMARY KEY,
                         count INTEGER NOT NULL
                     )
                 """
@@ -52,7 +51,7 @@ class DatabaseManager:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "SELECT count FROM bright_spots ORDER BY id DESC LIMIT 1"
+                    "SELECT count FROM bright_spots ORDER BY timestamp DESC LIMIT 1"
                 )
                 row = cursor.fetchone()
                 return row[0] if row else None

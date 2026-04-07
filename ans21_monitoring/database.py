@@ -37,7 +37,7 @@ class DatabaseManager:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "INSERT INTO bright_spots (timestamp, count) VALUES (?, ?)",
+                    "INSERT OR REPLACE INTO bright_spots (timestamp, count) VALUES (?, ?)",
                     (timestamp, count),
                 )
                 conn.commit()

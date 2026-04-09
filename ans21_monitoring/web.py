@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string
+from flask import Flask, render_template_string, request
 import datetime
 from collections import defaultdict
 
@@ -27,7 +27,8 @@ def create_app(db_manager):
 
     @app.route("/chart")
     def chart():
-        return _render_chart(db_manager)
+        days = _get_requested_days(request.args.get("days"))
+        return _render_chart(db_manager, days=days)
 
     return app
 
@@ -38,6 +39,15 @@ def _get_color(count):
 
 def _get_label(count):
     return COUNT_LABELS.get(count, DEFAULT_LABEL)
+
+
+def _get_requested_days(days_value, default=15):
+    try:
+        days = int(days_value)
+    except (TypeError, ValueError):
+        return default
+
+    return days if days > 0 else default
 
 
 def _build_segments(readings, days=15):
@@ -119,7 +129,7 @@ def _build_chart_html(readings, days=15):
         )
 
     fig.update_layout(
-        title="Bright Spots - Last 15 Days",
+        title=f"Bright Spots - Last {days} Days",
         dragmode="zoom",
         selectdirection="h",
         xaxis=dict(
@@ -145,9 +155,9 @@ def _build_chart_html(readings, days=15):
     )
 
 
-def _render_chart(db_manager):
-    readings = db_manager.get_readings(days=15)
-    chart_html = _build_chart_html(readings, days=15)
+def _render_chart(db_manager, days=15):
+    readings = db_manager.get_readings(days=days)
+    chart_html = _build_chart_html(readings, days=days)
 
     template = """
     <!DOCTYPE html>
@@ -159,12 +169,23 @@ def _render_chart(db_manager):
             body { font-family: sans-serif; margin: 0; padding: 20px; background: #f8fafc; }
             .container { max-width: 1100px; margin: 0 auto; }
             h1 { margin: 0 0 16px; text-align: center; }
+            .controls { display: flex; justify-content: center; margin-bottom: 16px; }
+            .controls form { display: flex; gap: 8px; align-items: center; background: white; padding: 12px 14px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.08); }
+            .controls input { width: 90px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
+            .controls button { padding: 8px 14px; border: 0; border-radius: 6px; background: #2563eb; color: white; cursor: pointer; }
             .panel { background: white; border-radius: 10px; padding: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.08); }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>Pump Status Chart (Last 15 Days)</h1>
+            <h1>Pump Status Chart (Last {{ days }} Days)</h1>
+            <div class="controls">
+                <form method="get" action="/chart">
+                    <label for="days">Days</label>
+                    <input id="days" name="days" type="number" min="1" value="{{ days }}" />
+                    <button type="submit">Update</button>
+                </form>
+            </div>
             <div class="panel">
                 {{ chart_html | safe }}
             </div>
@@ -173,7 +194,7 @@ def _render_chart(db_manager):
     </html>
     """
 
-    return render_template_string(template, chart_html=chart_html)
+    return render_template_string(template, chart_html=chart_html, days=days)
 
 
 def _render_index(db_manager):

@@ -21,6 +21,7 @@ dependencies = [
     "schedule",
     "gunicorn",
     "astral",
+    "plotly",
 ]
 
 [project.optional-dependencies]

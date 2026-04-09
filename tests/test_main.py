@@ -19,6 +19,7 @@ def mock_dependencies():
     ):
 
         mock_db_instance = mock_db_cls.return_value
+        mock_db_instance.get_last_count.return_value = None
         yield {
             "setup_logging": mock_setup,
             "db_cls": mock_db_cls,
@@ -71,7 +72,7 @@ def test_main_loop_logic(mock_dependencies):
     # Verification
     mocks["take_picture"].assert_called()
     mocks["count"].assert_called_with("img")
-    # Should save because initial count (-1) differs from new count (10)
+    # Should save because initial count (None) differs from new count (10)
     mocks["db_instance"].save_reading.assert_called_with(10)
 
 
@@ -81,8 +82,8 @@ def test_main_loop_no_change_short_interval(mock_dependencies):
     mocks["count"].return_value = 10
 
     # We want to simulate multiple iterations
-    # 1. First iteration: count 10 (change from -1). Save.
-    # 2. Second iteration: count 10 (no change). Time check fails. No save.
+    # 1. First iteration: count 10 (change from None). Save.
+    # 2. Second iteration: count 10 (no change). No save.
 
     # Use side_effect on sleep to count iterations and eventually break
     call_count = 0

@@ -16,7 +16,6 @@ from ans21_monitoring.web import create_app
 
 # Configuration
 CHECK_INTERVAL_SECONDS = 60
-FORCE_LOG_INTERVAL_SECONDS = 300  # 5 minutes
 
 LATITUDE = 47.5972
 LONGITUDE = 11.1874
@@ -41,7 +40,13 @@ def _calculate_sleep_time(elapsed: float, now_utc: Optional[datetime] = None) ->
         tomorrow = now_utc.date() + timedelta(days=1)
         next_sunrise = sun(observer, date=tomorrow, tzinfo=timezone.utc)["sunrise"]
 
-    return max(0.0, (next_sunrise - now_utc).total_seconds())
+    sleep_time = (next_sunrise - now_utc).total_seconds()
+    logger = logging.getLogger(__name__)
+    logger.debug(
+        f"Nighttime detected. Now: {now_utc}, next sunrise at: {next_sunrise}, sleeping for {sleep_time:.2f} seconds."
+    )
+
+    return max(0.0, sleep_time)
 
 
 def main():
@@ -56,9 +61,8 @@ def main():
         logger.critical(f"Failed to initialize database: {e}. Exiting.")
         sys.exit(1)
 
-    # Initialize state
-    last_stored_count = -1
-    last_stored_time = 0.0
+    # Initialize state from DB so restarts don't duplicate the last value
+    last_stored_count = db_manager.get_last_count()
 
     monitor_running = True
 
@@ -97,27 +101,12 @@ def main():
                 time.sleep(CHECK_INTERVAL_SECONDS)
                 continue
 
-            current_time = time.time()
-            should_save = False
-
-            # Check if count changed
             if current_count != last_stored_count:
                 logger.info(
                     f"Count changed from {last_stored_count} to {current_count}"
                 )
-                should_save = True
-
-            # Check 5-minute interval
-            elif (current_time - last_stored_time) >= FORCE_LOG_INTERVAL_SECONDS:
-                logger.info(
-                    f"Periodic logging (every {FORCE_LOG_INTERVAL_SECONDS}s). Count: {current_count}"
-                )
-                should_save = True
-
-            if should_save:
                 db_manager.save_reading(current_count)
                 last_stored_count = current_count
-                last_stored_time = current_time
 
         except Exception as e:
             logger.error(f"Unexpected error in monitoring loop: {e}", exc_info=True)

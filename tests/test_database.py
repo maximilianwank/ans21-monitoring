@@ -46,3 +46,13 @@ def test_get_readings(temp_db):
     assert now in timestamps
     assert one_day_ago in timestamps
     assert four_days_ago not in timestamps
+
+
+def test_get_last_count_empty(temp_db):
+    assert temp_db.get_last_count() is None
+
+
+def test_get_last_count_with_data(temp_db):
+    temp_db.save_reading(5)
+    temp_db.save_reading(3)
+    assert temp_db.get_last_count() == 3

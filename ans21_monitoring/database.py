@@ -19,8 +19,7 @@ class DatabaseManager:
                 cursor.execute(
                     """
                     CREATE TABLE IF NOT EXISTS bright_spots (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        timestamp INTEGER NOT NULL,
+                        timestamp INTEGER PRIMARY KEY,
                         count INTEGER NOT NULL
                     )
                 """
@@ -38,13 +37,27 @@ class DatabaseManager:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "INSERT INTO bright_spots (timestamp, count) VALUES (?, ?)",
+                    "INSERT OR REPLACE INTO bright_spots (timestamp, count) VALUES (?, ?)",
                     (timestamp, count),
                 )
                 conn.commit()
             logger.debug(f"Saved reading: {count} spots at {timestamp}")
         except sqlite3.Error as e:
             logger.error(f"Failed to save reading: {e}")
+
+    def get_last_count(self):
+        """Return the count from the most recent reading, or None if empty."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT count FROM bright_spots ORDER BY timestamp DESC LIMIT 1"
+                )
+                row = cursor.fetchone()
+                return row[0] if row else None
+        except sqlite3.Error as e:
+            logger.error(f"Failed to get last count: {e}")
+            return None
 
     def get_readings(self, days=3):
         """Get readings from the last n days."""

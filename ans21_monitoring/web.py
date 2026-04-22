@@ -125,7 +125,7 @@ def _build_chart_html(readings, days=15):
         )
 
     fig.update_layout(
-        title=f"Bright Spots - Last {days} Days",
+        title=f"Pump Status - Last {days} Days",
         dragmode="zoom",
         selectdirection="h",
         xaxis=dict(

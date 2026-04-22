@@ -42,7 +42,7 @@ def _calculate_sleep_time(elapsed: float, now_utc: Optional[datetime] = None) ->
 
     sleep_time = (next_sunrise - now_utc).total_seconds()
     logger = logging.getLogger(__name__)
-    logger.debug(
+    logger.info(
         f"Nighttime detected. Now: {now_utc}, next sunrise at: {next_sunrise}, sleeping for {sleep_time:.2f} seconds."
     )
 

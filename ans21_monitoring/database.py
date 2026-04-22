@@ -41,7 +41,7 @@ class DatabaseManager:
                     (timestamp, count),
                 )
                 conn.commit()
-            logger.debug(f"Saved reading: {count} spots at {timestamp}")
+            logger.info(f"Saved reading: {count} spots at {timestamp}")
         except sqlite3.Error as e:
             logger.error(f"Failed to save reading: {e}")
 

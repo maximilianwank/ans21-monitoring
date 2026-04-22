@@ -23,11 +23,7 @@ def create_app(db_manager):
 
     @app.route("/")
     def index():
-        return _render_chart(db_manager, days=3)
-
-    @app.route("/chart")
-    def chart():
-        days = _get_requested_days(request.args.get("days"))
+        days = _get_requested_days(request.args.get("days"), default=3)
         return _render_chart(db_manager, days=days)
 
     return app
@@ -180,7 +176,7 @@ def _render_chart(db_manager, days=15):
         <div class="container">
             <h1>Pump Status Chart (Last {{ days }} Days)</h1>
             <div class="controls">
-                <form method="get" action="/chart">
+                <form method="get" action="/">
                     <label for="days">Days</label>
                     <input id="days" name="days" type="number" min="1" value="{{ days }}" />
                     <button type="submit">Update</button>

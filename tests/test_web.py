@@ -29,6 +29,23 @@ def test_chart_route_uses_default_days():
     assert 'value="15"' in body
 
 
+def test_index_route_uses_chart_with_3_days():
+    db = DummyDB()
+    app = create_app(db)
+    client = app.test_client()
+
+    with patch(
+        "ans21_monitoring.web._build_chart_html", return_value="<div>chart</div>"
+    ):
+        response = client.get("/")
+
+    body = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert db.requested_days == [3]
+    assert "Pump Status Chart (Last 3 Days)" in body
+    assert 'value="3"' in body
+
+
 def test_chart_route_accepts_custom_days():
     db = DummyDB()
     app = create_app(db)

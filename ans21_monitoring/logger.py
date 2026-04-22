@@ -36,4 +36,4 @@ def setup_logging(log_file="ans21_monitoring.log"):
     console_handler.setFormatter(formatter)
     root_logger.addHandler(console_handler)
 
-    logging.info("Logging setup complete.")
+    logging.debug("Logging setup complete.")

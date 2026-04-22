@@ -24,7 +24,7 @@ def take_picture(camera_index: int = 0) -> np.ndarray:
 
     if not cap.isOpened():
         error_msg = f"Could not open camera with index {camera_index}"
-        logger.error(error_msg)
+        logger.debug(error_msg)
         raise RuntimeError(error_msg)
 
     try:
@@ -33,7 +33,7 @@ def take_picture(camera_index: int = 0) -> np.ndarray:
 
         if not ret:
             error_msg = "Failed to capture image frame"
-            logger.error(error_msg)
+            logger.debug(error_msg)
             raise RuntimeError(error_msg)
 
         logger.debug("Successfully captured frame.")

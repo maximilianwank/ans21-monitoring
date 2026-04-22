@@ -42,7 +42,7 @@ def _calculate_sleep_time(elapsed: float, now_utc: Optional[datetime] = None) ->
 
     sleep_time = (next_sunrise - now_utc).total_seconds()
     logger = logging.getLogger(__name__)
-    logger.debug(
+    logger.info(
         f"Nighttime detected. Now: {now_utc}, next sunrise at: {next_sunrise}, sleeping for {sleep_time:.2f} seconds."
     )
 
@@ -53,12 +53,12 @@ def main():
     setup_logging()
     logger = logging.getLogger(__name__)
 
-    logger.info(f"Starting ANS21 Monitoring Service v{__version__}")
+    logger.debug(f"Starting ANS21 Monitoring Service v{__version__}")
 
     try:
         db_manager = DatabaseManager()
     except Exception as e:
-        logger.critical(f"Failed to initialize database: {e}. Exiting.")
+        logger.debug(f"Failed to initialize database: {e}. Exiting.")
         sys.exit(1)
 
     # Initialize state from DB so restarts don't duplicate the last value
@@ -69,7 +69,7 @@ def main():
     # Graceful shutdown handler
     def signal_handler(sig, frame):
         nonlocal monitor_running
-        logger.info("Monitoring stopped by user (signal).")
+        logger.debug("Monitoring stopped by user (signal).")
         monitor_running = False
 
     signal.signal(signal.SIGINT, signal_handler)
@@ -83,9 +83,9 @@ def main():
         daemon=True,
     )
     web_thread.start()
-    logger.info("Web interface started on http://0.0.0.0:5000")
+    logger.debug("Web interface started on http://0.0.0.0:5000")
 
-    logger.info("Monitoring loop started. Press Ctrl+C to stop.")
+    logger.debug("Monitoring loop started. Press Ctrl+C to stop.")
 
     while monitor_running:
         start_time = time.time()
@@ -96,7 +96,7 @@ def main():
                 current_count = count_bright_spots(image)
                 logger.debug(f"Bright spots detected: {current_count}")
             except Exception as e:
-                logger.error(f"Error during image capture or analysis: {e}")
+                logger.debug(f"Error during image capture or analysis: {e}")
                 # Wait entire interval on error to avoid rapid looping
                 time.sleep(CHECK_INTERVAL_SECONDS)
                 continue
@@ -109,7 +109,7 @@ def main():
                 last_stored_count = current_count
 
         except Exception as e:
-            logger.error(f"Unexpected error in monitoring loop: {e}", exc_info=True)
+            logger.debug(f"Unexpected error in monitoring loop: {e}", exc_info=True)
 
         # Sleep for the remainder of the interval
         if monitor_running:
@@ -117,7 +117,7 @@ def main():
             try:
                 sleep_time = _calculate_sleep_time(elapsed)
             except Exception as e:
-                logger.warning(
+                logger.debug(
                     f"Failed to calculate sunrise/sunset sleep time: {e}. Falling back to fixed interval."
                 )
                 sleep_time = max(0, CHECK_INTERVAL_SECONDS - elapsed)

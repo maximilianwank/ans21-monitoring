@@ -25,9 +25,9 @@ class DatabaseManager:
                 """
                 )
                 conn.commit()
-            logger.debug(f"Database initialized at {self.db_path}")
+            logger.info(f"Database initialized at {self.db_path}")
         except sqlite3.Error as e:
-            logger.debug(f"Failed to initialize database: {e}")
+            logger.error(f"Failed to initialize database: {e}")
             raise
 
     def save_reading(self, count):
@@ -43,7 +43,7 @@ class DatabaseManager:
                 conn.commit()
             logger.debug(f"Saved reading: {count} spots at {timestamp}")
         except sqlite3.Error as e:
-            logger.debug(f"Failed to save reading: {e}")
+            logger.error(f"Failed to save reading: {e}")
 
     def get_last_count(self):
         """Return the count from the most recent reading, or None if empty."""
@@ -56,7 +56,7 @@ class DatabaseManager:
                 row = cursor.fetchone()
                 return row[0] if row else None
         except sqlite3.Error as e:
-            logger.debug(f"Failed to get last count: {e}")
+            logger.error(f"Failed to get last count: {e}")
             return None
 
     def get_readings(self, days=3):
@@ -73,5 +73,5 @@ class DatabaseManager:
                 )
                 return cursor.fetchall()
         except sqlite3.Error as e:
-            logger.debug(f"Failed to get readings: {e}")
+            logger.error(f"Failed to get readings: {e}")
             return []

@@ -15,7 +15,7 @@ def setup_logging(log_file="ans21_monitoring.log"):
 
     # Create the root logger
     root_logger = logging.getLogger()
-    root_logger.setLevel(logging.DEBUG)
+    root_logger.setLevel(logging.INFO)
 
     # Format for logs
     formatter = logging.Formatter(
@@ -26,7 +26,7 @@ def setup_logging(log_file="ans21_monitoring.log"):
     file_handler = logging.handlers.RotatingFileHandler(
         log_path, maxBytes=1024 * 1024, backupCount=5
     )
-    file_handler.setLevel(logging.DEBUG)
+    file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(formatter)
     root_logger.addHandler(file_handler)
 
